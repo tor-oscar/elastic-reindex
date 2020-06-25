@@ -1,0 +1,25 @@
+{
+  "name": "elastic-reindex",
+  "version": "0.1.0",
+  "description": "CLI tool to reindex an opinionated elastic search setup",
+  "main": "index.js",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "ramda": "^0.27.0",
+    "yargs": "^15.3.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DrunkenInfant/elastic-reindex.git"
+  },
+  "author": "Oscar Olsson <osse.olsson@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DrunkenInfant/elastic-reindex/issues"
+  },
+  "homepage": "https://github.com/DrunkenInfant/elastic-reindex#readme"
+}
