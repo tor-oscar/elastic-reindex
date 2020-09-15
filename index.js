@@ -4,19 +4,19 @@ const axios = require('axios'),
       yargs = require('yargs'),
       R = require('ramda');
 
-function updateTemplate(uri, name, template) {
-  return axios({
+function updateTemplate(client, name, template) {
+  return client({
     method: 'POST',
-    url: `${uri}/_template/${name}`,
+    url: `_template/${name}`,
     data: template,
     responseType: 'json',
   });
 }
 
-function getCurrentIndex(uri, name) {
-  return axios({
+function getCurrentIndex(client, name) {
+  return client({
     method: 'GET',
-    url: `${uri}/${name}`,
+    url: `${name}`,
     responseType: 'json',
   })
   .then(R.pipe(R.prop('data'), R.keys))
@@ -26,19 +26,19 @@ function getCurrentIndex(uri, name) {
   );
 }
 
-function createNewIndex(uri, name) {
-  return axios({
+function createNewIndex(client, name) {
+  return client({
     method: 'PUT',
-    url: `${uri}/${name}`,
+    url: `${name}`,
     data: '',
   })
   .then(() => [name]);
 }
 
-function reindex(uri, newIndex, oldIndex) {
-  return axios({
+function reindex(client, newIndex, oldIndex) {
+  return client({
     method: 'POST',
-    url: `${uri}/_reindex?refresh=true`,
+    url: `_reindex?refresh=true`,
     data: {
       source: { index: oldIndex },
       dest: { index: newIndex }
@@ -47,10 +47,10 @@ function reindex(uri, newIndex, oldIndex) {
   .then(() => [newIndex, oldIndex]);
 }
 
-function updateAlias(uri, alias, newIndex, oldIndex) {
-  return axios({
+function updateAlias(client, alias, newIndex, oldIndex) {
+  return client({
     method: 'POST',
-    url: `${uri}/_aliases`,
+    url: `_aliases`,
     data: { actions: !oldIndex
       ? [ { add: { index: newIndex, alias } } ]
       : [ { add: { index: newIndex, alias } }, { remove: { index: oldIndex, alias } } ]
@@ -75,26 +75,33 @@ const yargv = yargs
     alias: 't',
     description: 'Path to index template'
   })
+  .option('api-key', {
+    type: 'string',
+    description: 'API key if required'
+  })
   .demandOption(['uri', 'name', 'template'], 'Please provide mandatory options')
   .help()
   .argv;
 
+const client = axios.create({
+  baseURL: yargv.uri,
+  headers: yargv['api-key'] ? { 'Authorization': `APIKey ${yargv['api-key']}` } : {},
+});
 const templatePath = yargv.template;
-const uri = yargv.uri;
 const name = yargv.name;
 
 const template = require(templatePath);
 
-updateTemplate(uri, name, template)
-.then(() => getCurrentIndex(uri, name))
+updateTemplate(client, name, template)
+.then(() => getCurrentIndex(client, name))
 .then(currentIndices => R.length(currentIndices) > 1
   ? Promise.reject('Multiple current indices')
   : R.head(currentIndices)
 )
-.then(currentIndex => createNewIndex(uri, `${name}-${Date.now()}`)
-  .then(currentIndex ? ([newIndex]) => reindex(uri, newIndex, currentIndex) : R.identity)
+.then(currentIndex => createNewIndex(client, `${name}-${Date.now()}`)
+  .then(currentIndex ? ([newIndex]) => reindex(client, newIndex, currentIndex) : R.identity)
 )
-.then(([newIndex, oldIndex]) => updateAlias(uri, name, newIndex, oldIndex))
+.then(([newIndex, oldIndex]) => updateAlias(client, name, newIndex, oldIndex))
 .catch(err => {
   if (err.response && err.response.data) {
     console.error(`${err.config.method} ${err.config.url} -> ${err.response.status}\n${JSON.stringify(err.response.data)}`);
