@@ -2,7 +2,8 @@
 
 const axios = require('axios'),
       yargs = require('yargs'),
-      R = require('ramda');
+      R = require('ramda'),
+      path = require('path');
 
 function updateTemplate(client, name, template) {
   return client({
@@ -90,7 +91,7 @@ const client = axios.create({
 const templatePath = yargv.template;
 const name = yargv.name;
 
-const template = require(templatePath);
+const template = require(path.resolve(templatePath));
 
 updateTemplate(client, name, template)
 .then(() => getCurrentIndex(client, name))
