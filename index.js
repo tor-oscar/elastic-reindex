@@ -96,6 +96,10 @@ updateTemplate(uri, name, template)
 )
 .then(([newIndex, oldIndex]) => updateAlias(uri, name, newIndex, oldIndex))
 .catch(err => {
-  console.error(err);
+  if (err.response && err.response.data) {
+    console.error(`${err.config.method} ${err.config.url} -> ${err.response.status}\n${JSON.stringify(err.response.data)}`);
+  } else {
+    console.error(err);
+  }
   process.exit(1);
 });
