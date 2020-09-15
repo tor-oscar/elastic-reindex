@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "CLI tool to reindex an opinionated elastic search setup",
   "main": "index.js",
+  "bin": "index.js",
   "dependencies": {
     "axios": "^0.19.2",
     "ramda": "^0.27.0",
